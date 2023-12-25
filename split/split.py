@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-import os
-with open('bible.txt', 'r', encoding='utf-8') as f:
-    lines = f.readlines()
+import os, re
 
 book_titles = [
     'The First Book of Moses: Called Genesis',
@@ -79,27 +77,57 @@ def save_book(title, i, book):
 
     ct = title.replace(" ", "-").replace(":", "").lower()
     print(f'save {ct}')
+    fixed_book = fix_book_lines(book)
     with open(f'out/{i:02}-{ct}.txt', 'w', encoding='utf-8') as f:
-        f.writelines(book)
+        f.writelines(fixed_book)
 
-book = []
-book_index = 0
-title = ''
-for line in lines:
-    # if line.strip():
-    #     print(line.strip())
-    not_last_book = bool(book_titles)
-    if not_last_book and line.strip() == book_titles[0]:
-        # print(f'new title after: "{title}"')
-        if book:
-            save_book(title, book_index, book)
-        if book_titles:
-            title = book_titles[0]
-            # print(f'new title "{title}"')
-            book = []
-            book_index += 1
-        book_titles = book_titles[1:]
-    if title and line.strip():
-        book.append(line)
 
-save_book(title, book_index, book)
+def line_matches_title(line, title):
+    return line.strip() == title
+
+verse_regex = re.compile(r'\d+:\d+')
+def split_verses(book):
+   for line in book:
+       for chunk in re.split(r'(\d+:\d+)', line):
+           if chunk:
+               yield chunk
+
+def fix_book_lines(book):
+    fixed_book = [book[0]]
+    for chunk in split_verses(book[1:]):
+        stripped_chunk = chunk.rstrip()
+        # print(f'CHUNK "{stripped_chunk}"')
+        if verse_regex.match(stripped_chunk):
+            fixed_book[-1] = fixed_book[-1] + '\n'
+            fixed_book.append(stripped_chunk)
+        elif stripped_chunk:
+            fixed_book[-1] = fixed_book[-1] + ' ' + stripped_chunk.strip()
+    return fixed_book
+
+def split_bible(filename):
+    remaining_titles = book_titles
+    book = []
+    book_index = 0
+    title = ''
+    with open(filename, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            # if line.strip():
+            #     print(line.strip())
+            not_last_book = bool(remaining_titles)
+            if not_last_book and line.strip() == remaining_titles[0]:
+                # print(f'new title after: "{title}"')
+                if book:
+                    save_book(title, book_index, book)
+                if remaining_titles:
+                    title = remaining_titles[0]
+                    # print(f'new title "{title}"')
+                    book = []
+                    book_index += 1
+                remaining_titles = remaining_titles[1:]
+            if title and line.strip():
+                book.append(line)
+        save_book(title, book_index, book)
+
+if __name__ == "__main__":
+    split_bible('bible.txt')
