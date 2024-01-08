@@ -119,11 +119,11 @@ def split_bible(filename):
                 # print(f'new title after: "{title}"')
                 if book:
                     save_book(title, book_index, book)
+                    book_index += 1
                 if remaining_titles:
                     title = remaining_titles[0]
                     # print(f'new title "{title}"')
                     book = []
-                    book_index += 1
                 remaining_titles = remaining_titles[1:]
             if title and line.strip():
                 book.append(line)
