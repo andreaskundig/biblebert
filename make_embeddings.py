@@ -22,7 +22,7 @@ def save_embeddings_to_json(book_index, model):
        lines.append(line)
 
     embeddings = model.encode(lines)
-    with open(f"embeddings-{book_index}.json", "w") as fp:
+    with open(f"embeddings/embeddings-{book_index}.json", "w") as fp:
         json.dump(
             {
                 "ids": ids,
