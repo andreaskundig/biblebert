@@ -9,39 +9,31 @@ from typing import List, TypedDict
 class EmbeddingData(TypedDict):
     ids: List[int]
     embeddings: List[List[float]]
+    faiss_index: faiss.IndexFlatL2
 
 book_path = Path("split/out")
 
 
 
-def index_from_embeddings(embeddings):
+def build_faiss_index(embeddings):
     index = faiss.IndexFlatL2(len(embeddings[0]))
     index.add(np.array(embeddings))
     return index
 
+def verse_id_to_embedding(data, verse_id):
+    verse_index = verse_id_to_index(data, verse_id )
+    return data["embeddings"][verse_index]
 
-def find_similar_for_verse(verse, data, index, k=10):
-    # k nearest neighbours
-    ids = data["ids"]
-    idx = ids.index(verse)
-    embedding = data["embeddings"][idx]
-    _, I = index.search(np.array([embedding]), k)
-    # Now find the content IDs for the results
-    return [ids[ix] for ix in I[0]]
+def verse_id_to_index(data, verse_id):
+    return data['ids'].index(verse_id)
 
-def test():
-    #setup
-    book_verses = dict(get_lines(book_path / BOOKS[10]))
-    with open('embeddings.json') as f:
-        data = json.load(f)
-    index = index_from_embeddings(data['embeddings'])
-    target = '2:37'
-    print(book_verses[target])
-    print('='*50)
-    similar_verses = find_similar_for_verse(target, data, index)
-    for verse in similar_verses:
-        print(book_verses[verse])
-        print('-'*50)
+def verse_index_to_id(data, verse_index):
+    return data["ids"][verse_index]
+
+def find_similar_verse_ids(data: EmbeddingData, embedding, k=10):
+    faiss_index: faiss.IndexFlatL2 = data['faiss_index']
+    _, I = faiss_index.search(np.array([embedding]), k)
+    return [verse_index_to_id(data, ix) for ix in I[0]]
 
 def get_or_create_embeddings(book_index) -> EmbeddingData:
     embeddings_path = Path(f'embeddings/embeddings-{book_index}.json')
@@ -49,27 +41,31 @@ def get_or_create_embeddings(book_index) -> EmbeddingData:
         model = get_model()
         save_embeddings_to_json(book_index, model)
     with open(embeddings_path) as file:
-        return json.load(file)
+        data = json.load(file)
+        data['faiss_index'] = build_faiss_index(data['embeddings'])
+        return data
 
+def find_next_verse_id(verse1_id, data1, data2):
+    embedding = verse_id_to_embedding(data1, verse1_id)
+    [ verse2_id ] = find_similar_verse_ids(data2, embedding, 1)
+    verse2_index = verse_id_to_index(data2, verse2_id)
+    verse2_ids = data2['ids']
+    if  verse2_index + 1 >= len(verse2_ids):
+        return None
+    return verse2_ids[verse2_index+1]
 
 #TODO alternate verses from two books
 def book_dialog(book_idx_1, book_idx_2):
     book_indices = [book_idx_1, book_idx_2]
     data_list = [get_or_create_embeddings(idx) for idx in book_indices]
-    indices = [index_from_embeddings(data['embeddings']) for data in data_list]
     book_titles = [BOOKS[book_idx_1], BOOKS[book_idx_2]]
     texts = [dict(get_lines(book_path / bt)) for bt in book_titles]
-    # >>> texts[0]['1:1']
-    # 'In the beginning God created the heaven and the earth.'
-    target = "1:1" # list(texts[0].keys())[0]
-    index = indices[1]
-    data = data_list[0]
-    current_book = 0
-    similar_verses = find_similar_for_verse(target, data, index, 1)
-    # >>> similar_verses
-    # ['14:20']
-    # TODO find index of 14:21 and search in genesis
-    print(texts[1][similar_verses[0]])
+    verse1_id = "1:1"
+    verse1 = texts[0][verse1_id]
+    print(f'{verse1_id} {verse1}')
+    verse2_id = find_next_verse_id(verse1_id, *data_list)
+    verse2 = texts[1][verse2_id]
+    print(f'{verse2_id} {verse2}')
 
 # choosing first and last index
 # genesis vs apocalypse
