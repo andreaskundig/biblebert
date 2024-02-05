@@ -62,7 +62,7 @@ def find_next_verse_ids(verse1_id, data1, data2, k=1):
     verse2_ids = data2['ids']
     v2_count = len(verse2_ids)
     return [verse2_ids[idx+1] for idx in v2_indices
-                        if idx+1 <= v2_count]
+                        if idx+1 < v2_count]
 
 def print_verse(data, verse_id):
     print(f'{verse_id} {verseid_to_verse(data, verse_id)}')
@@ -96,7 +96,7 @@ def book_dialog(book_idx_1, book_idx_2):
 
     data_list = init_data(book_idx_1, book_idx_2)
 
-    generator = ping_pong('1:1', data_list[0], data_list[1], 20)
+    generator = ping_pong('1:1', data_list[0], data_list[1], 10)
     result = list(itertools.islice(generator, 20))
     for r in result:
         print(f'{r[0]} {r[1]}')
