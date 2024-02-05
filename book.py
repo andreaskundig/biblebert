@@ -4,7 +4,7 @@ import re
 BOOK11 = book_path = 'split/out/11-the-first-book-of-the-kings.txt'
 
 def get_lines(filename):
-    with open(filename) as f:
+    with open(filename, encoding="utf-8") as f:
         for line in f:
             match = re.match(r'(\d+:\d+) +(.*)', line)
             if match:

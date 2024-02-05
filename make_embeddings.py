@@ -6,8 +6,6 @@ from pathlib import Path
 from sentence_transformers import SentenceTransformer
 from book import get_lines, BOOKS
 
-model = SentenceTransformer("sentence-transformers/gtr-t5-large")
-
 def get_model():
     return  SentenceTransformer("sentence-transformers/gtr-t5-large")
 
