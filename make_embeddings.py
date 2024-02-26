@@ -10,13 +10,21 @@ import msgpack
 def get_model():
     return  SentenceTransformer("sentence-transformers/gtr-t5-large")
 
+def get_book_lines(book_index):
+    book_title = BOOKS[book_index]
+    print(f'processing {book_title}')
+    book_path = Path('split/out') / Path(book_title)
+    return get_lines(book_path)
+
 def save_embeddings_to_json(book_index, model):
     book_title = BOOKS[book_index]
     print(f'processing {book_title}')
+    book_path = Path('split/out') / Path(book_title)
+
+
     ids = []
     lines = []
-    book_path = Path('split/out') / Path(book_title)
-    for (id, line) in get_lines(book_path):
+    for (id, line) in get_book_lines(book_path):
        ids.append(id)
        lines.append(line)
 

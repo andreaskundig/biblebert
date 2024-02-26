@@ -4,14 +4,14 @@ import numpy as np
 from pathlib import Path
 # from make_embeddings import get_model
 from search_embeddings import build_faiss_index
-from data import data_from_file
+from data import data_from_json
 
 class TestSearch(unittest.TestCase):
     def test_search(self):
         # model = get_model()
 
         #data0 = json.load(f0)
-        data0 = data_from_file(Path('embeddings/embeddings-0.json'))
+        data0 = data_from_json(Path('embeddings/embeddings-0.json'))
         faiss_index0 = build_faiss_index(data0.embeddings)
         embedding0_index = 15
         embedding0 = data0.embeddings[embedding0_index]
@@ -25,7 +25,7 @@ class TestSearch(unittest.TestCase):
         _, [I01] = faiss_index0.search(np.array([embedding0]), 5)
         self.assertListEqual(list(I00), list(I01))
 
-        data1 = data_from_file(Path('embeddings/embeddings-66.json'))
+        data1 = data_from_json(Path('embeddings/embeddings-66.json'))
         embedding1 = data1.embeddings[5]
 
         _, [I10] = faiss_index0.search(np.array([embedding1]), 5)
