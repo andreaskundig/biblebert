@@ -6,6 +6,7 @@ from book import get_lines, BOOKS
 from pathlib import Path
 from make_embeddings import get_model, save_embeddings_to_json
 from typing import List, TypedDict, Dict
+from data import build_faiss_index
 
 class EmbeddingData(TypedDict):
     ids: List[int]
@@ -15,13 +16,6 @@ class EmbeddingData(TypedDict):
     verses: Dict[str, str]
 
 book_path = Path("split/out")
-
-
-
-def build_faiss_index(embeddings):
-    index = faiss.IndexFlatL2(len(embeddings[0]))
-    index.add(np.array(embeddings))
-    return index
 
 def verse_id_to_embedding(data, verse_id):
     verse_index = verse_id_to_index(data, verse_id )

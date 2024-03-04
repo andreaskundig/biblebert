@@ -19,6 +19,21 @@ class TestData(unittest.TestCase):
         data = data_from_book(book_path, MODEL)
         self.assertEqual(len(data.embeddings), 10)
 
-        save_data(data, Path('tests/data-test.bin'))
-        data_2 = data_from_file(Path('tests/data-test.bin'))
+        tmp_path = Path('tests/tmp/data-test.mpk')
+        save_data(data, tmp_path)
+        data_2 = data_from_file(tmp_path)
         self.assertEqual(len(data_2.embeddings), 10)
+
+    def test_faiss_index(self):
+        data_path = Path('tests/data-test.mpk')
+        data = data_from_file(data_path)
+        self.assertEqual(len(data.embeddings), 10)
+        self.assertIsNone(data.faiss_index)
+        data.initialize_faiss()
+        self.assertIsNotNone(data.faiss_index)
+
+        emb = data.embeddings[8]
+        verse_id = data.verse_index_to_id(8)
+        found_verse_ids = data.find_similar_verse_ids(emb, 1)
+        self.assertEqual(1, len(found_verse_ids))
+        self.assertEqual(verse_id, found_verse_ids[0])
