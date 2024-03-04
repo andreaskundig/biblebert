@@ -6,7 +6,7 @@ from book import get_lines, BOOKS
 from pathlib import Path
 from make_embeddings import get_model, save_embeddings_to_json
 from typing import List, TypedDict, Dict
-from data import build_faiss_index
+from data import build_faiss_index, Data
 
 class EmbeddingData(TypedDict):
     ids: List[int]
@@ -80,6 +80,29 @@ def ping_pong(verse1_id, data_1, data_2, k=10):
         verse_id = valid_ids[0]
         consumed_verses[idx2].add(verse_id)
         idx1, idx2 = idx2, idx1
+
+def ping_pong1(verse1_id:str, data_1: Data, data_2: Data, k=10):
+    datas = [data_1, data_2]
+    src_idx, tgt_idx = 0, 1
+    verse_id = verse1_id
+    consumed_verses = [{verse_id}, set()]
+    while True:
+        source, target = datas[src_idx], datas[tgt_idx]
+        target_consumed = consumed_verses[tgt_idx]
+        yield verse_id, source.verse_id_to_index(verse_id), 0
+        try:
+            next_verse_id = source.next_verse_id(verse_id)
+        except:
+            return
+        searched_embedding = source.embedding_for_verse_id(next_verse_id)
+        target_verse_ids = target.find_similar_verse_ids(
+            searched_embedding, 5)
+        valid_target_ids = list(set(target_verse_ids) - target_consumed)
+        if len(valid_target_ids) == 0:
+            return
+        verse_id = valid_target_ids[0]
+        target_consumed.add(verse_id)
+        src_idx, tgt_idx = tgt_idx, src_idx
 
 def init_data(book_idx_1, book_idx_2):
     book_indices = [book_idx_1, book_idx_2]
