@@ -51,7 +51,6 @@ if __name__ == '__main__':
     model = get_model()
     print('got model')
     print(datetime.datetime.now().isoformat())
-    for book_index in [0, 40]:
-        # save_embeddings_to_json(book_index, model)
+    for book_index in [66]:
         save_embeddings(book_index, model)
         print(datetime.datetime.now().isoformat())

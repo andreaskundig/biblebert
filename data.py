@@ -12,7 +12,7 @@ from book import get_lines
 
 EmbeddingList = Union[list[Tensor], ndarray, Tensor]
 Embedding = Union[ndarray, Tensor]
-
+ 
 class Data:
     ids: list[str]
     embeddings: EmbeddingList
