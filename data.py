@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import re
 import msgpack
 import faiss
 import numpy as np
@@ -7,12 +8,20 @@ from sentence_transformers import SentenceTransformer
 from typing import Any, Union, Optional
 from torch import Tensor
 from numpy import ndarray
-from book import get_lines
 
 
 EmbeddingList = Union[list[Tensor], ndarray, Tensor]
 Embedding = Union[ndarray, Tensor]
- 
+
+def get_lines(filename):
+    with open(filename, encoding="utf-8") as f:
+        for line in f:
+            match = re.match(r"(\d+:\d+) +(.*)", line)
+            if match:
+                id = match.group(1)
+                text = match.group(2)
+                yield (id, text)
+
 class Data:
     ids: list[str]
     embeddings: EmbeddingList

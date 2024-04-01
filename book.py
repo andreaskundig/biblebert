@@ -1,28 +1,34 @@
 #!/usr/bin/env python3
 import re
 from pathlib import Path
+from typing import Optional
+
+from data import Data, data_from_file, get_lines
 
 BOOK11 = book_path = "split/out/11-the-first-book-of-the-kings.txt"
-
-
-def get_lines(filename):
-    with open(filename, encoding="utf-8") as f:
-        for line in f:
-            match = re.match(r"(\d+:\d+) +(.*)", line)
-            if match:
-                id = match.group(1)
-                text = match.group(2)
-                yield (id, text)
 
 
 class Book:
     title: str
     verses: dict
+    data: Optional[Data]
+    books_root_path = Path('split/out')
+    embeddings_root_path = Path('embeddings')
+    book_index: int
 
-    def __init__(self, book_path: Path, book_index: int) -> None:
+    def __init__(self, book_index: int) -> None:
+        self.book_index = book_index
         book_title = BOOKS[book_index]
         self.title = book_title
-        self.verses = dict(get_lines(book_path / book_title))
+        self.verses = dict(get_lines(self.books_root_path / book_title))
+
+    def init_embeddings(self):
+        em_name = f'embeddings-{self.book_index}.mpk'
+        em_path = self.embeddings_root_path / em_name
+        self.data = data_from_file(em_path)
+        self.data.initialize_faiss()
+
+
 
 BOOKS = [
     "00-the-first-book-of-moses-called-genesis.txt",

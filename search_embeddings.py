@@ -15,8 +15,6 @@ class EmbeddingData(TypedDict):
     title: str
     verses: Dict[str, str]
 
-book_path = Path("split/out")
-
 def verse_id_to_embedding(data, verse_id):
     verse_index = verse_id_to_index(data, verse_id )
     return data["embeddings"][verse_index]
@@ -64,13 +62,14 @@ def print_verse(data, verse_id):
 def verseid_to_verse(data, verse_id):
     return data['verses'][verse_id]
 
-def ping_pong(verse1_id:str, data_1: Data, data_2: Data, k=10):
-    datas = [data_1, data_2]
+def ping_pong(verse1_id:str, books: List[Book], k=10):
+    datas = [b.data for b in books]
     src_idx, tgt_idx = 0, 1
     verse_id = verse1_id
     verses_to_ignore = [{verse_id}, set()]
     while True:
         source, target = datas[src_idx], datas[tgt_idx]
+        assert source is not None and target is not None
         target_verses_to_ignore = verses_to_ignore[tgt_idx]
         yield verse_id, source.verse_id_to_index(verse_id), src_idx
         try:
@@ -79,9 +78,11 @@ def ping_pong(verse1_id:str, data_1: Data, data_2: Data, k=10):
             return
         searched_embedding = source.embedding_for_verse_id(next_verse_id)
         target_verse_ids = target.find_similar_verse_ids(
-            searched_embedding, 5)
-        valid_target_ids = list(set(target_verse_ids) - 
-                                target_verses_to_ignore)
+            searched_embedding, k)
+        valid_target_ids = [
+            vid for vid in target_verse_ids 
+            if vid not in target_verses_to_ignore
+            ]
         if len(valid_target_ids) == 0:
             return
         verse_id = valid_target_ids[0]
@@ -96,19 +97,15 @@ def init_data(book_idx_1, book_idx_2):
 def book_dialog(book_idx_1, book_idx_2):
 
     print('-' * 50)
-    data1 = data_from_file(Path(f'embeddings/embeddings-{book_idx_1}.mpk'))
-    data2 = data_from_file(Path(f'embeddings/embeddings-{book_idx_2}.mpk'))
-    data1.initialize_faiss()
-    data2.initialize_faiss()
-    generator = ping_pong('1:1', data1, data2, 5)
+    
+    books = [Book(book_idx_1), Book(book_idx_2)]
+    for book in books:
+        book.init_embeddings()
+    generator = ping_pong('1:1', books, 5)
 
-    books = [Book(book_path, book_idx_1),
-             Book(book_path, book_idx_2)]
-
-    result = list(itertools.islice(generator, 5))
+    result = list(itertools.islice(generator, 10))
     for verse_id, verse_idx, src_idx in result:
-        print(f'{verse_id} {verse_idx} {src_idx}')
-        print(books[src_idx].verses[verse_id])
+        print(f'{src_idx} {verse_id} {books[src_idx].verses[verse_id]} ')
 
 
 
