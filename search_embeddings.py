@@ -1,4 +1,5 @@
 import json
+import sys
 import itertools
 import faiss
 import numpy as np
@@ -62,7 +63,7 @@ def print_verse(data, verse_id):
 def verseid_to_verse(data, verse_id):
     return data['verses'][verse_id]
 
-def ping_pong(verse1_id:str, books: List[Book], k=10):
+def ping_pong(verse1_id:str, books: List[Book], k=10, use_next_verse=True):
     datas = [b.data for b in books]
     src_idx, tgt_idx = 0, 1
     verse_id = verse1_id
@@ -73,7 +74,10 @@ def ping_pong(verse1_id:str, books: List[Book], k=10):
         target_verses_to_ignore = verses_to_ignore[tgt_idx]
         yield verse_id, source.verse_id_to_index(verse_id), src_idx
         try:
-            next_verse_id = source.next_verse_id(verse_id)
+            if use_next_verse:
+                next_verse_id = source.next_verse_id(verse_id)
+            else:
+                next_verse_id = verse_id
         except:
             return
         searched_embedding = source.embedding_for_verse_id(next_verse_id)
@@ -94,23 +98,27 @@ def init_data(book_idx_1, book_idx_2):
     return [get_or_create_embeddings(idx) for idx in book_indices]
 
 #TODO alternate verses from two books
-def book_dialog(book_idx_1, book_idx_2):
+def book_dialog(book_idx_1, book_idx_2, use_next_verse=True):
 
     print('-' * 50)
     
     books = [Book(book_idx_1), Book(book_idx_2)]
     for book in books:
         book.init_embeddings()
-    generator = ping_pong('1:1', books, 5)
+    generator = ping_pong('1:1', books, 5, use_next_verse)
 
     result = list(itertools.islice(generator, 10))
     for verse_id, verse_idx, src_idx in result:
         print(f'{src_idx} {verse_id} {books[src_idx].verses[verse_id]} ')
 
 
-
-
 if __name__ == '__main__':
+    books = (sys.argv[1:] + [0, 66])[0:2]
+    book0, book1 = [int(b) for b in books]
+
     # choosing first and last index
     # genesis vs apocalypse
-    book_dialog(0, 66)
+    book_dialog(book0, book1)
+    print()
+    book_dialog(book0, book1, use_next_verse=False)
+

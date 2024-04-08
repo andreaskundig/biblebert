@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import json
+import sys
 import datetime
 from pathlib import Path
-from sentence_transformers import SentenceTransformer
 from book import get_lines, BOOKS
 from data import data_from_book, save_data
 
 def get_model():
-    return  SentenceTransformer("sentence-transformers/gtr-t5-large")
+    from sentence_transformers import SentenceTransformer
+    return SentenceTransformer("sentence-transformers/gtr-t5-large")
 
 def get_book_lines(book_index):
     book_title = BOOKS[book_index]
@@ -47,10 +48,11 @@ def save_embeddings_to_json(book_index, model):
         )
 
 if __name__ == '__main__':
+    books = [int(b) for b in sys.argv[1:]]
     print(datetime.datetime.now().isoformat())
     model = get_model()
     print('got model')
     print(datetime.datetime.now().isoformat())
-    for book_index in [66]:
+    for book_index in books:
         save_embeddings(book_index, model)
         print(datetime.datetime.now().isoformat())
