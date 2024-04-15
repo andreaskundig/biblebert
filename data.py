@@ -1,5 +1,4 @@
 from pathlib import Path
-import json
 import re
 import msgpack
 import faiss
@@ -68,11 +67,6 @@ def data_from_book(book_path: Path, model: SentenceTransformer):
        lines.append(line)
     embeddings = model.encode(lines)
     return Data(ids, embeddings)
-
-def data_from_json(path: Path) -> Data:
-    with open(path) as f:
-        data = json.load(f)
-        return Data(data['ids'], data['embeddings'])
 
 def data_from_file(path: Path) -> Data:
     with open(path, 'rb') as f:
