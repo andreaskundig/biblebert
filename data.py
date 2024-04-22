@@ -81,3 +81,16 @@ def save_data(data:Data, path: Path):
             "embeddings": [list(map(float, e)) for e in data.embeddings]
         })
         fp.write(packed)
+
+def save_datas(datas:list[Data], path: Path):
+    with open(path, "wb") as fp:
+        embeddings = []
+        ids = []
+        for data, data_index in enumerate(datas):
+            ids.extend([f'{data_index}-{id}' for id in data.ids])
+            embeddings.extend([list(map(float, e)) for e in data.embeddings])
+        packed: Any = msgpack.packb({
+            "ids": ids,
+            "embeddings": embeddings
+        })
+        fp.write(packed)

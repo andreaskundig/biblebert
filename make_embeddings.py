@@ -4,7 +4,7 @@ import sys
 import datetime
 from pathlib import Path
 from book import get_lines, BOOKS
-from data import data_from_book, save_data
+from data import data_from_book, save_data, save_datas
 
 def get_model():
     from sentence_transformers import SentenceTransformer
@@ -25,6 +25,14 @@ def save_embeddings(book_index, model):
     save_path = Path(f"embeddings/embeddings-{book_index}.mpk")
     save_data(data, save_path)
 
+def save_all_embeddings( model):
+    datas = []
+    for book_title in BOOKS:
+        print(f'processing {book_title}')
+        book_path = Path('split/out') / Path(book_title)
+        datas.append(data_from_book(book_path, model))
+    save_path = Path(f"embeddings/embeddings-all.mpk")
+    save_datas(datas, save_path)
 
 def save_embeddings_to_json(book_index, model):
     book_title = BOOKS[book_index]
@@ -48,11 +56,15 @@ def save_embeddings_to_json(book_index, model):
         )
 
 if __name__ == '__main__':
-    books = [int(b) for b in sys.argv[1:]]
     print(datetime.datetime.now().isoformat())
     model = get_model()
     print('got model')
     print(datetime.datetime.now().isoformat())
-    for book_index in books:
-        save_embeddings(book_index, model)
-        print(datetime.datetime.now().isoformat())
+    if len(sys.argv) == 1:
+        print('save all books')
+        save_all_embeddings(model)
+    else:
+        books = [int(b) for b in sys.argv[1:]]
+        for book_index in books:
+            save_embeddings(book_index, model)
+    print(datetime.datetime.now().isoformat())
