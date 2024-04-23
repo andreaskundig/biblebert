@@ -22,38 +22,23 @@ def save_embeddings(book_index, model):
     print(f'processing {book_title}')
     book_path = Path('split/out') / Path(book_title)
     data = data_from_book(book_path, model)
+    save_data_mpk(data, book_index)
+
+def save_data_mpk(data, book_index):
     save_path = Path(f"embeddings/embeddings-{book_index}.mpk")
+    print(f'saving {save_path}')
     save_data(data, save_path)
 
 def save_all_embeddings( model):
     datas = []
-    for book_title in BOOKS:
+    for book_index, book_title in enumerate(BOOKS):
         print(f'processing {book_title}')
         book_path = Path('split/out') / Path(book_title)
-        datas.append(data_from_book(book_path, model))
+        data = data_from_book(book_path, model)
+        datas.append(data)
+        save_data_mpk(data, book_index)
     save_path = Path(f"embeddings/embeddings-all.mpk")
     save_datas(datas, save_path)
-
-def save_embeddings_to_json(book_index, model):
-    book_title = BOOKS[book_index]
-    print(f'processing {book_title}')
-    book_path = Path('split/out') / Path(book_title)
-
-    ids = []
-    lines = []
-    for (id, line) in get_book_lines(book_path):
-       ids.append(id)
-       lines.append(line)
-
-    embeddings = model.encode(lines)
-    with open(f"embeddings/embeddings-{book_index}.json", "w") as fp:
-        json.dump(
-            {
-                "ids": ids,
-                "embeddings": [list(map(float, e)) for e in embeddings]
-            },
-            fp,
-        )
 
 if __name__ == '__main__':
     print(datetime.datetime.now().isoformat())
