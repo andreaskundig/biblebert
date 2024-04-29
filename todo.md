@@ -9,4 +9,5 @@ git lfs install
 git lfs track "*.mpk"
 git add .gitattributes
 git lfs migrate import --include="*.mpk"
+git lfs pull
 ```
