@@ -2,11 +2,11 @@
 import re
 from pathlib import Path
 from typing import Optional
+from sentence_transformers import util
 
-from data import Data, data_from_file, get_lines
+from data import Data, data_from_file, get_lines, get_lines_of_files
 
 BOOK11 = book_path = "split/out/11-the-first-book-of-the-kings.txt"
-
 
 class Book:
     title: str
@@ -14,19 +14,40 @@ class Book:
     data: Optional[Data]
     books_root_path = Path('split/out')
     embeddings_root_path = Path('embeddings')
-    book_index: int
+    embedding_file_name: str
 
-    def __init__(self, book_index: int) -> None:
+    def __init__(self, book_index: Optional[int] = None) -> None:
         self.book_index = book_index
-        book_title = BOOKS[book_index]
-        self.title = book_title
-        self.verses = dict(get_lines(self.books_root_path / book_title))
+
+        if book_index is None:
+            self.title = 'The King James Bible'
+            book_paths = [self.books_root_path / b for b in BOOKS]
+            self.verses = dict(get_lines_of_files(book_paths))
+            self.embedding_file_name = f'embeddings-all.mpk'
+        else:
+            filename = BOOKS[book_index]
+            self.title = filename[3:-4].replace('-', ' ')
+            self.verses = dict(get_lines(self.books_root_path / filename))
+            self.embedding_file_name = f'embeddings-{self.book_index}.mpk'
 
     def init_embeddings(self):
-        em_name = f'embeddings-{self.book_index}.mpk'
-        em_path = self.embeddings_root_path / em_name
+        em_path = self.embeddings_root_path / self.embedding_file_name
         self.data = data_from_file(em_path)
         self.data.initialize_faiss()
+
+    def similarities(self):
+        if not hasattr(self, 'data'):
+            self.init_embeddings()
+        embeds = self.data.embeddings
+        simils = []    
+        for embedding_a in embeds:
+            others = []
+            simils.append(others)
+            for embedding_b in embeds:
+                similarity = util.cos_sim(embedding_a, embedding_b)
+                others.append(similarity)
+        return simils
+
 
 
 

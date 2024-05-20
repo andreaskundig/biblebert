@@ -12,6 +12,11 @@ from numpy import ndarray
 EmbeddingList = Union[list[Tensor], ndarray, Tensor]
 Embedding = Union[ndarray, Tensor]
 
+def get_lines_of_files(filenames):
+    for index, filename in enumerate(filenames):
+        for id, text in get_lines(filename):
+            yield (f'{index}-{id}', text)
+            
 def get_lines(filename):
     with open(filename, encoding="utf-8") as f:
         for line in f:
