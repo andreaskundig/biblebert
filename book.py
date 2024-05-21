@@ -40,16 +40,17 @@ class Book:
             self.init_embeddings()
         embeds = self.data.embeddings
         simils = []    
-        for embedding_a in embeds:
+        for idx_a, embedding_a in enumerate(embeds):
             others = []
             simils.append(others)
-            for embedding_b in embeds:
-                similarity = util.cos_sim(embedding_a, embedding_b)
+            for idx_b,  embedding_b in enumerate(embeds):
+                try:
+                    # similarity(a,b) == similarity(a,b)
+                    similarity = simils[idx_b][idx_a]
+                except IndexError:
+                    similarity = util.cos_sim(embedding_a, embedding_b)
                 others.append(similarity)
         return simils
-
-
-
 
 BOOKS = [
     "00-the-first-book-of-moses-called-genesis.txt",

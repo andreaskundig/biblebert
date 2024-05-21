@@ -16,6 +16,8 @@ if __name__ == '__main__':
     most_idx = sorted_totals[-1][1]
     least_similar_verse_id = book.data.verse_index_to_id(least_idx)
     most_similar_verse_id = book.data.verse_index_to_id(most_idx)
+    print(book.title)
+    print('-' * 100)
     print(book.verses[most_similar_verse_id])
     print('-' * 100)
     print(book.verses[least_similar_verse_id])
