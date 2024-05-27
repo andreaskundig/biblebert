@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 import sys
 import datetime
+import time
 from pathlib import Path
 from book import get_lines, BOOKS
 from data import data_from_book, save_data, save_datas
 
 def get_model():
+    t0 = time.time()
     from sentence_transformers import SentenceTransformer
-    return SentenceTransformer("sentence-transformers/gtr-t5-large")
+    t1 = time.time()
+    print(f'time to import SentenceTransformer: {t1-t0}')
+    model = SentenceTransformer("sentence-transformers/gtr-t5-large")
+    t2 = time.time()
+    print(f'time to load gtr-t5-large: {t2-t1}')
+    return model
 
 def get_book_lines(book_index):
     book_title = BOOKS[book_index]

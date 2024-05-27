@@ -3,7 +3,6 @@ import re
 import msgpack
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from typing import Any, Union, Optional
 from torch import Tensor
 from numpy import ndarray
@@ -64,7 +63,7 @@ def build_faiss_index(embeddings) -> faiss.IndexFlatL2:
     index.add(np.array(embeddings))
     return index
 
-def data_from_book(book_path: Path, model: SentenceTransformer):
+def data_from_book(book_path: Path, model):
     ids = []
     lines = []
     for (id, line) in get_lines(book_path):

@@ -43,7 +43,7 @@ class Book:
         for idx_a, embedding_a in enumerate(embeds):
             others = []
             simils.append(others)
-            for idx_b,  embedding_b in enumerate(embeds):
+            for idx_b, embedding_b in enumerate(embeds):
                 try:
                     # similarity(a,b) == similarity(a,b)
                     similarity = simils[idx_b][idx_a]
